@@ -1,6 +1,6 @@
 {
   "name": "wp-front-end-editor",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "Edit your posts on the front-end of your site.",
   "keywords": [
     "front-end editor",
@@ -8,7 +8,7 @@
   ],
   "homepage": "https://wordpress.org/plugins/wp-front-end-editor/",
   "bugs": {
-    "url": "http://github.com/isuelde/wp-front-end-editor/issues"
+    "url": "http://github.com/gios/wp-front-end-editor/issues"
   },
   "license": "GPL-2.0+",
   "author": {
