@@ -21,21 +21,10 @@ class FEE {
 
 		$this->wp_version = str_replace( '-src', '', $wp_version );
 
-		if (
-			version_compare( $this->wp_version, $this->package['wp']['min'], '<' ) ||
-			version_compare( $this->wp_version, $this->package['wp']['max'], '>' )
-		) {
-			return add_action( 'admin_notices', array( $this, 'admin_notices' ) );
-		}
-
 		add_post_type_support( 'post', 'front-end-editor' );
 		add_post_type_support( 'page', 'front-end-editor' );
 
 		add_action( 'init', array( $this, 'init' ) );
-	}
-
-	function admin_notices() {
-		echo '<div class="error"><p>' . sprintf( __( '<strong>WordPress Front-end Editor</strong> currently only works between versions %s and %s.' ), $this->package['wp']['min'], $this->package['wp']['max'] ) . '</p></div>';
 	}
 
 	function init() {
