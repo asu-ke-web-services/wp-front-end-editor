@@ -179,3 +179,7 @@
 .wp-fee-locked #wpadminbar #wp-admin-bar-edit > .ab-item:before {
 	content: '\f160';
 }
+
+#wpadminbar {
+  z-index: 999999 !important;
+}
