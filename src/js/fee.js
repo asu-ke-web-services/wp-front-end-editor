@@ -46,6 +46,7 @@
 			start: function() {
 				if ( ! count ) {
 					$body.addClass( 'progress' );
+					$body.append( '<div class="progress-modal"></div>');
 				}
 
 				count++;
@@ -57,6 +58,7 @@
 
 				if ( ! count ) {
 					$body.removeClass( 'progress' );
+					$('.progress-modal').remove();
 				}
 			}
 		};

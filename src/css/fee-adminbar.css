@@ -184,6 +184,6 @@
 	content: '\f464';
 }
 
-#wpadminbar .quicklinks .menupop ul li {
+#wpadminbar .quicklinks #wp-admin-bar-edit.menupop ul li {
   float: left;
 }
