@@ -1,6 +1,6 @@
 {
   "name": "wp-front-end-editor",
-  "version": "1.0.6.2",
+  "version": "1.0.6.3",
   "description": "Edit your posts on the front-end of your site.",
   "keywords": [
     "front-end editor",
@@ -25,6 +25,10 @@
       "wp": {
         "username": "wordpressdotorg"
       }
+    },
+    {
+      "name": "GIOS",
+      "url": "http://sustainability.asu.edu"
     }
   ],
   "repository": {
@@ -49,13 +53,5 @@
     "grunt-rtlcss": "1.5.x",
     "grunt-sass": "0.16.x",
     "matchdep": "0.3.x"
-  },
-  "wp": {
-    "name": "Front-end Editor",
-    "min": "4.1",
-    "max": "4.3-alpha",
-    "network": false,
-    "textDomain": "wp-front-end-editor",
-    "domainPath": "languages"
   }
 }
