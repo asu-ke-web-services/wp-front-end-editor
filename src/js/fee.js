@@ -110,8 +110,6 @@
 		wp.fee.post.post_content = function( content ) {
 			var returnContent;
 
-			console.log('test');
-
 			if ( content && content !== 'raw' && content !== 'html' ) {
 				contentEditor.undoManager.add();
 				contentEditor.setContent( content );
@@ -125,7 +123,6 @@
 
 			if ( content !== 'raw' ) {
 				returnContent = returnContent.replace( /<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>' );
-				//returnContent = window.switchEditors.pre_wpautop( returnContent );
 				returnContent = returnContent.replace( /<p>\[/g, '[');
 				returnContent = returnContent.replace( /\]<\/p>/g, ']');
 				returnContent = returnContent.replace( /<br \/>/g, '');
