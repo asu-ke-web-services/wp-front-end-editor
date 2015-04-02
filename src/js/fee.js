@@ -126,7 +126,10 @@
 				//returnContent = window.switchEditors.pre_wpautop( returnContent );
 				returnContent = returnContent.replace( /<p>\[/g, '[');
 				returnContent = returnContent.replace( /\]<\/p>/g, ']');
-				returnContent = returnContent.replace( /<p>&nbsp;<\/p>/g, '<br/>');
+				returnContent = returnContent.replace( /<br \/>/g, '');
+				returnContent = returnContent.replace( /<p>&nbsp;<\/p>/g, '<br />');
+
+				
 			}
 
 			return returnContent;
