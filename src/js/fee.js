@@ -123,7 +123,10 @@
 
 			if ( content !== 'raw' ) {
 				returnContent = returnContent.replace( /<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>' );
-				returnContent = window.switchEditors.pre_wpautop( returnContent );
+				//returnContent = window.switchEditors.pre_wpautop( returnContent );
+				returnContent = returnContent.replace( /<p>\[/g, '[');
+				returnContent = returnContent.replace( /\]<\/p>/g, ']');
+				returnContent = returnContent.replace( /<p>&nbsp;<\/p>/g, '<br/>');
 			}
 
 			return returnContent;
