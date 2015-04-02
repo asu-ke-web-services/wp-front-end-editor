@@ -158,6 +158,7 @@
 			}
 
 			$( '#wp-admin-bar-edit' ).addClass( 'active' );
+			$( '#wp-admin-bar-edit-in-page').hide();
 			$body.removeClass( 'fee-off' ).addClass( 'fee-on' );
 			$hasPostThumbnail.addClass( 'has-post-thumbnail' );
 
@@ -194,12 +195,14 @@
 			}
 
 			$( '#wp-admin-bar-edit' ).removeClass( 'active' );
+			$( '#wp-admin-bar-edit-in-page').show();
 			$body.removeClass( 'fee-on' ).addClass( 'fee-off' );
 			if ( ! $thumbnail.find( 'img' ).length ) {
 				$hasPostThumbnail.removeClass( 'has-post-thumbnail' );
 			}
 
-			$title.html( wp.fee.postOnServer.post_title );
+			if ($title && $title.length > 0)
+				$title[0].html( wp.fee.postOnServer.post_title );
 			$titles.html( wp.fee.postOnServer.post_title );
 
 			if ( docTitle ) {
@@ -738,7 +741,7 @@
 			save();
 		} );
 
-		$( '#wp-admin-bar-edit > a' ).on( 'click.fee', function() {
+		$( '#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a' ).on( 'click.fee', function() {
 			event.preventDefault();
 			on();
 		} );

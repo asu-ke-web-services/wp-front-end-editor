@@ -29,7 +29,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "http://github.com/iseulde/wp-front-end-editor.git"
+    "url": "http://github.com/gios/wp-front-end-editor.git"
   },
   "devDependencies": {
     "grunt": "0.4.x",

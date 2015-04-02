@@ -180,3 +180,10 @@
 	content: '\f160';
 }
 
+#wpadminbar #wp-admin-bar-edit-in-page > .ab-item:before {
+	content: '\f464';
+}
+
+#wpadminbar .quicklinks .menupop ul li {
+  float: left;
+}

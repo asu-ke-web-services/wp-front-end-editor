@@ -28,6 +28,7 @@ body.progress * {
 }
 
 #wp-admin-bar-edit #wp-admin-bar-edit-in-admin,
+#wp-admin-bar-edit #wp-admin-bar-edit-in-page,
 .fee-on #wp-admin-bar-edit li {
 	display: block;
 }

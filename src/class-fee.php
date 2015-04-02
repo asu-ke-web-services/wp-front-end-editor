@@ -562,6 +562,13 @@ class FEE {
 
 			$wp_admin_bar->add_node( array(
 				'parent' => 'edit',
+				'id' => 'edit-in-page',
+				'title' => __( 'Edit in Page' ),
+				'href' => '#'
+			) );
+
+			$wp_admin_bar->add_node( array(
+				'parent' => 'edit',
 				'id' => 'edit-in-admin',
 				'title' => __( 'Edit in admin' ),
 				'href' => get_edit_post_link( $current_object->ID )
