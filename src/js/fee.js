@@ -110,6 +110,8 @@
 		wp.fee.post.post_content = function( content ) {
 			var returnContent;
 
+			console.log('test');
+
 			if ( content && content !== 'raw' && content !== 'html' ) {
 				contentEditor.undoManager.add();
 				contentEditor.setContent( content );
@@ -128,8 +130,6 @@
 				returnContent = returnContent.replace( /\]<\/p>/g, ']');
 				returnContent = returnContent.replace( /<br \/>/g, '');
 				returnContent = returnContent.replace( /<p>&nbsp;<\/p>/g, '<br />');
-
-				
 			}
 
 			return returnContent;
