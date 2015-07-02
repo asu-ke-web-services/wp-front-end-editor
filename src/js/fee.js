@@ -553,6 +553,17 @@
 
     titleInit();
 
+
+
+    function addPostLockDialog(post_lock_content) {
+      // If we get response and post lock dialog add that to body or replace if one exists 
+      if ($('#post-lock-dialog').length == 0) {
+        $('#wp-link-wrap').after(post_lock_content);
+      } else {
+        $('#post-lock-dialog').replaceWith(post_lock_content);
+      }
+    }
+
     $window
       .on('beforeunload.fee', function() {
         if (!hidden && isDirty()) {
@@ -596,6 +607,7 @@
         if (wp.fee.postOnServer.post_content !== wp.fee.post.post_content()) {
           window.console.log('The content on the server and the content in the editor is different. This may be due to errors.');
         }
+
       })
       .on('autosave-enable-buttons.fee', function() {
         $buttons.prop('disabled', false);
@@ -686,6 +698,20 @@
         $autoSaveNotice && $autoSaveNotice.fadeOut('slow', function() {
           $autoSaveNotice.remove();
         });
+      })
+      .ready(function($) {
+        if ($('#post-lock-dialog').length == 0) {
+          wp.ajax.post('fee_get_post_lock_dialog', {
+            _wpnonce: wp.fee.nonces.postLockDialog,
+            post_ID: wp.fee.post.ID(),
+          }).done(function(data) {
+            var post_lock_content = data.message
+            if (post_lock_content) {
+              addPostLockDialog(post_lock_content);
+              $('#post-lock-dialog').hide();
+            }
+          });
+        }
       });
 
     $categories.on('click.fee', function(event) {
@@ -746,18 +772,12 @@
 
     $('#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a').on('click.fee', function() {
       event.preventDefault();
-      // Check whether post is currently under edit by some other or not
-      wp.ajax.post('fee_edit_in_page', {
-        _wpnonce: wp.fee.nonces.editInPage,
+      wp.ajax.post('fee_get_post_lock_dialog', {
+        _wpnonce: wp.fee.nonces.postLockDialog,
         post_ID: wp.fee.post.ID(),
       }).done(function(data) {
         if (data.message) {
-          // If we get response and post lock dialog add that to body or replace if one exists 
-          if ($('#post-lock-dialog').length == 0) {
-            $('#wp-link-wrap').after(data.message);
-          } else {
-            $('#post-lock-dialog').replaceWith(data.message);
-          }
+          addPostLockDialog(data.message);
           // If it is locked by some one turn off editor
           if ($('.post-locked-message').length > 0) {
             off();

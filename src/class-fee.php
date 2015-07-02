@@ -40,7 +40,7 @@ class FEE {
 		add_action( 'wp_ajax_fee_shortcode', array( $this, 'ajax_shortcode' ) );
 		add_action( 'wp_ajax_fee_thumbnail', array( $this, 'ajax_thumbnail' ) );
 		add_action( 'wp_ajax_fee_categories', array( $this, 'ajax_categories' ) );
-		add_action( 'wp_ajax_fee_edit_in_page', array( $this, 'ajax_edit_in_page' ) );
+		add_action( 'wp_ajax_fee_get_post_lock_dialog', array( $this, 'ajax_fee_get_post_lock_dialog' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'wp', array( $this, 'wp' ) );
@@ -121,9 +121,9 @@ class FEE {
 	 * dialog box. Also @see  get_edit_post_link_ajax() comments to know
 	 * why filters are added
 	 */
-	function ajax_edit_in_page() {
+	function ajax_fee_get_post_lock_dialog() {
 		global $post;
-		check_ajax_referer( 'fee-edit-in-page_' . $_POST['post_ID'], 'nonce' );
+		check_ajax_referer( 'fee-get-post-lock-dialog_' . $_POST['post_ID'], 'nonce' );
 		/*if ( count( get_users( array( 'fields' => 'ID', 'number' => 2 ) ) ) > 1 ) {
 			add_action( 'wp_print_footer_scripts', '_admin_notice_post_locked' );
 		}	*/
@@ -314,7 +314,7 @@ class FEE {
 					'post' => wp_create_nonce( 'update-post_' . $post->ID ),
 					'slug' => wp_create_nonce( 'slug-nonce_' . $post->ID ),
 					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID ),
-					'editInPage' => wp_create_nonce( 'fee-edit-in-page_' . $post->ID )
+					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID )
 				),
 				'lock' => ! wp_check_post_lock( $post->ID ) ? implode( ':', wp_set_post_lock( $post->ID ) ) : false,
 				'notices' => array(
