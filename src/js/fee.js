@@ -336,7 +336,6 @@
 
     function addNotice(html, type, remove) {
       var $notice = $('<div>').addClass(type);
-
       $notice.append(
         '<p>' + html + '</p>' +
         (remove === true ? '' : '<div class="dashicons dashicons-dismiss"></div>')
@@ -346,16 +345,11 @@
 
       $notice.find('.dashicons-dismiss').on('click.fee', function() {
         $notice.remove();
-
-        if (remove !== true) {
-          remove();
-        }
       });
 
       remove === true && $notice.delay(5000).fadeOut('slow', function() {
         $notice.remove();
       });
-
       return $notice;
     }
 
