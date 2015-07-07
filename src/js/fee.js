@@ -338,7 +338,7 @@
       var $notice = $('<div>').addClass(type);
       $notice.append(
         '<p>' + html + '</p>' +
-        (remove === true ? '' : ' <div class="dashicons dashicons-dismiss"></div>')
+        (remove === true ? '' : '<div class="dashicons dashicons-dismiss"></div>')
       );
 
       $noticeArea.prepend($notice);
