@@ -716,6 +716,9 @@
             }
           });
         }
+        if ( ! hasLock ) {
+          $body.addClass('fee-off');
+        }
       });
 
     $categories.on('click.fee', function(event) {
