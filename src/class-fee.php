@@ -110,6 +110,8 @@ class FEE {
 	 * get-lock-post is needs be there as $_GET paramter to get lock as per wp() method.
 	 * edit_post() fails as get_queried_object_id
 	 * method returns 0 instead of current post id.
+	 * If filter is not setup default URL will take you to admin panel on click of
+	 * Take Over button
 	 */
 	function get_edit_post_link_ajax($link=null, $id=null, $context=null){
 		return '#fee-edit-link';
@@ -123,23 +125,22 @@ class FEE {
 	 */
 	function ajax_fee_get_post_lock_dialog() {
 		global $post;
-		$post_id = $_POST['post_ID'];
+
+		$post_id = filter_input( INPUT_POST, 'post_ID', FILTER_SANITIZE_STRING );
+		$get_post_lock = filter_input( INPUT_POST, 'get_post_lock', FILTER_SANITIZE_STRING );
 		check_ajax_referer( 'fee-get-post-lock-dialog_' . $post_id, 'nonce' );
-		/*if ( count( get_users( array( 'fields' => 'ID', 'number' => 2 ) ) ) > 1 ) {
-			add_action( 'wp_print_footer_scripts', '_admin_notice_post_locked' );
-		}	*/
 		add_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link_ajax' ), 10, 3 );
 		require_once( ABSPATH . '/wp-admin/includes/post.php' );
 		$post = get_post( $post_id );
 		setup_postdata( $post );
 		ob_start();
-    _admin_notice_post_locked();
-    $view = ob_get_contents();
-    ob_end_clean();
-    if ( strpos( $view, 'post-locked-message' ) === false && isset( $_POST['get_post_lock'] ) )  {
+		_admin_notice_post_locked();
+		$view = ob_get_contents();
+		ob_end_clean();
+    if ( strpos( $view, 'post-locked-message' ) === false && ! empty( $get_post_lock ) )  {
 			wp_set_post_lock( $post_id);
 		}
-    remove_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link' ), 10, 3 );
+		remove_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link' ), 10, 3 );
 		wp_send_json_success( array(
 			'message' => $view
 		) );
@@ -321,7 +322,6 @@ class FEE {
 					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID ),
 					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID )
 				),
-				//'lock' => ! wp_check_post_lock( $post->ID ) ? implode( ':', wp_set_post_lock( $post->ID ) ) : false,
 				'lock' => $lock,
 				'notices' => array(
 				'autosave' => $this->get_autosave_notice(),
@@ -377,23 +377,13 @@ class FEE {
 
 	function wp() {
 		global $post;
+		global $wp;
 
+		$current_url = home_url(add_query_arg(array(),$wp->request));
 		if ( ! empty( $_GET['get-post-lock'] ) ) {
 			require_once( ABSPATH . '/wp-admin/includes/post.php' );
-
 			wp_set_post_lock( $post->ID );
-			//wp_redirect( $this->edit_link( $post->ID ) );
-			/*
-			 * Fix to avoid redirect loop when clicked on 'Take Over' button
-			 */
-			if ( wp_get_referer() ) {
-				wp_safe_redirect( $this->add_hash_arg( array( 'edit' => 'true' ), wp_get_referer() ) );
-			} else {
-				// This is wrong and does infite loop as wp() is invoked every time
-				// and it checks for get-post-lock in $_GET and always gets
-				// edit lock and loops on need to find where it is
-				wp_safe_redirect( $this->edit_link( $post->ID ) );
-			}
+			wp_safe_redirect( $this->add_hash_arg( array( 'edit' => 'true' ), $current_url ) );
 		  exit;
 		}
 
@@ -402,18 +392,7 @@ class FEE {
 		}
 
 		if ( force_ssl_admin() && ! is_ssl() ) {
-			//wp_redirect( set_url_scheme( $this->edit_link( $post->ID ), 'https' ) );
-			/*
-			 * Fix to avoid redirect loop when clicked on 'Take Over' button
-			 */
-			if ( wp_get_referer() ) {
-				wp_safe_redirect( set_url_scheme( wp_get_referer(), 'https' ) );
-			} else {
-				// This is wrong and does infite loop as wp() is invoked every time
-				// and it checks for get-post-lock in $_GET and always gets
-				// edit lock and loops on need to find where it is
-				wp_safe_redirect( set_url_scheme( $this->edit_link( $post->ID ), 'https' ) );
-			}
+			wp_safe_redirect( set_url_scheme( $current_url, 'https' ) );
 		  exit;
 		}
 
@@ -441,11 +420,6 @@ class FEE {
 		add_action( 'wp_print_footer_scripts', 'wp_auth_check_html' );
 		add_action( 'wp_print_footer_scripts', array( $this, 'footer' ) );
 		add_action( 'wp_print_footer_scripts', array( $this, 'link_modal' ) );
-
-		/*if ( count( get_users( array( 'fields' => 'ID', 'number' => 2 ) ) ) > 1 ) {
-			add_action( 'wp_print_footer_scripts', '_admin_notice_post_locked' );
-		}*/
-
 		add_filter( 'fee_content', 'wptexturize' );
 		add_filter( 'fee_content', 'convert_chars' );
 		add_filter( 'fee_content', 'wpautop' );

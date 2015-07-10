@@ -158,8 +158,6 @@
       if (!hidden) {
         return;
       }
-      hasLock = true;
-
       $('#wp-admin-bar-edit').addClass('active');
       $('#wp-admin-bar-edit-in-page').hide();
       $body.removeClass('fee-off').addClass('fee-on');
@@ -191,7 +189,6 @@
     }
 
     function _off(location) {
-      hasLock = false;
       if (wp.autosave) {
         wp.autosave.local.suspend();
         wp.autosave.server.suspend();
@@ -622,6 +619,7 @@
         if (event.keyCode === 27) {
           event.preventDefault();
           off();
+          hasLock = false;
         }
       })
       .on('heartbeat-send.fee-refresh-lock', function(event, data) {
@@ -763,6 +761,7 @@
 
         leaveMessage(function() {
           _off($this.attr('href'));
+          hasLock = false;
         });
       }
     });
@@ -800,13 +799,23 @@
 
     $editLinks.on('click.fee', function(event) {
        event.preventDefault();
-       hasLock = false;
+       if ( hasLock == true ) {
+        off();
+        hasLock = false;
+      } else {
+        on();
+        hasLock = true;
+      }
+    });
+    $('#wp-admin-bar-edit-cancel > a').on('click.fee', function(event) {
+       event.preventDefault();
        wp.ajax.post('wp-remove-post-lock', {
           _wpnonce: wp.fee.nonces.post,
           post_ID: wp.fee.post.ID(),
           active_post_lock: wp.fee.lock
         });
-      toggle();
+      off();
+      hasLock = false;
     });
 
     // Temporary.
