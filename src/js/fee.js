@@ -3,7 +3,6 @@
 
   window.wp = window.wp || {};
   wp.fee = {};
-
   wp.heartbeat.interval(15);
 
   _.extend(wp.fee, window.fee);
@@ -39,7 +38,8 @@
       initializedEditors = 0,
       releaseLock = true,
       checkNonces, timeoutNonces,
-      initialPost;
+      initialPost,
+      hasLock = false;
 
     var count = 0;
     var loader = {
@@ -158,6 +158,7 @@
       if (!hidden) {
         return;
       }
+      hasLock = true;
 
       $('#wp-admin-bar-edit').addClass('active');
       $('#wp-admin-bar-edit-in-page').hide();
@@ -190,6 +191,7 @@
     }
 
     function _off(location) {
+      hasLock = false;
       if (wp.autosave) {
         wp.autosave.local.suspend();
         wp.autosave.server.suspend();
@@ -203,7 +205,7 @@
       }
 
       if ($title && $title.length > 0)
-        $title[0].html(wp.fee.postOnServer.post_title);
+        $title.first().html(wp.fee.postOnServer.post_title);
       $titles.html(wp.fee.postOnServer.post_title);
 
       if (docTitle) {
@@ -585,6 +587,7 @@
       .on('fee-editor-init.fee', function() {
         if ($body.hasClass('fee-on') || document.location.hash.indexOf('edit=true') !== -1) { // Lazy!
           on();
+          hasLock = true;
         }
 
         if ($body.hasClass('fee-off') && !$thumbnail.find('img').length) {
@@ -622,6 +625,9 @@
         }
       })
       .on('heartbeat-send.fee-refresh-lock', function(event, data) {
+        if( hasLock != true  ) {
+          return;
+        }
         data['wp-refresh-post-lock'] = {
           post_id: wp.fee.post.ID(),
           lock: wp.fee.lock
@@ -654,11 +660,15 @@
                 wrap.find('div.post-locked-avatar').empty().append(avatar);
               }
 
+              wrap.removeClass('hidden');
               wrap.show().find('.currently-editing').text(received.lock_error.text);
               wrap.find('.wp-tab-first').focus();
+              hasLock = false;
             }
           } else if (received.new_lock) {
             wp.fee.lock = received.new_lock;
+            hasLock = true;
+            $('#post-lock-dialog').hide();
           }
         }
       })
@@ -769,21 +779,30 @@
       wp.ajax.post('fee_get_post_lock_dialog', {
         _wpnonce: wp.fee.nonces.postLockDialog,
         post_ID: wp.fee.post.ID(),
+        get_post_lock:'true'
       }).done(function(data) {
         if (data.message) {
           addPostLockDialog(data.message);
           // If it is locked by some one turn off editor
           if ($('.post-locked-message').length > 0) {
             off();
+            hasLock = false;
           } else {
             on();
+            hasLock = true;
           }
         }
       });
     });
 
     $editLinks.on('click.fee', function(event) {
-      event.preventDefault();
+       event.preventDefault();
+       hasLock = false;
+       wp.ajax.post('wp-remove-post-lock', {
+          _wpnonce: wp.fee.nonces.post,
+          post_ID: wp.fee.post.ID(),
+          active_post_lock: wp.fee.lock
+        });
       toggle();
     });
 

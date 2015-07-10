@@ -123,18 +123,22 @@ class FEE {
 	 */
 	function ajax_fee_get_post_lock_dialog() {
 		global $post;
-		check_ajax_referer( 'fee-get-post-lock-dialog_' . $_POST['post_ID'], 'nonce' );
+		$post_id = $_POST['post_ID'];
+		check_ajax_referer( 'fee-get-post-lock-dialog_' . $post_id, 'nonce' );
 		/*if ( count( get_users( array( 'fields' => 'ID', 'number' => 2 ) ) ) > 1 ) {
 			add_action( 'wp_print_footer_scripts', '_admin_notice_post_locked' );
 		}	*/
 		add_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link_ajax' ), 10, 3 );
 		require_once( ABSPATH . '/wp-admin/includes/post.php' );
-		$post = get_post( $_POST['post_ID'] );
+		$post = get_post( $post_id );
 		setup_postdata( $post );
 		ob_start();
     _admin_notice_post_locked();
     $view = ob_get_contents();
     ob_end_clean();
+    if ( strpos( $view, 'post-locked-message' ) === false && isset( $_POST['get_post_lock'] ) )  {
+			wp_set_post_lock( $post_id);
+		}
     remove_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link' ), 10, 3 );
 		wp_send_json_success( array(
 			'message' => $view
@@ -306,6 +310,7 @@ class FEE {
 			wp_localize_script( 'wp-lists', 'ajaxurl', admin_url( 'admin-ajax.php' ) );
 
 			wp_enqueue_script( 'fee', $this->url( '/js/fee' . $suffix . '.js' ), array( 'fee-tinymce', 'wp-util', 'heartbeat', 'editor', 'wp-lists' ), $this->package['version'], true );
+			$lock = wp_check_post_lock( $post->ID );
 			wp_localize_script( 'fee', 'fee', array(
 				'tinymce' => apply_filters( 'fee_tinymce_config', $tinymce ),
 				'postOnServer' => $post,
@@ -316,9 +321,10 @@ class FEE {
 					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID ),
 					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID )
 				),
-				'lock' => ! wp_check_post_lock( $post->ID ) ? implode( ':', wp_set_post_lock( $post->ID ) ) : false,
+				//'lock' => ! wp_check_post_lock( $post->ID ) ? implode( ':', wp_set_post_lock( $post->ID ) ) : false,
+				'lock' => $lock,
 				'notices' => array(
-					'autosave' => $this->get_autosave_notice()
+				'autosave' => $this->get_autosave_notice(),
 				),
 				'postTaxOnServer' => $this->get_post_tax_and_terms(),
 				'taxonomies' => $this->get_tax_and_terms()
