@@ -29,7 +29,6 @@ class FEE {
 
 	function init() {
 		global $wp_post_statuses;
-
 		// Lets auto-drafts pass as drafts by WP_Query.
 		$wp_post_statuses['auto-draft']->protected = true;
 
@@ -41,12 +40,22 @@ class FEE {
 		add_action( 'wp_ajax_fee_shortcode', array( $this, 'ajax_shortcode' ) );
 		add_action( 'wp_ajax_fee_thumbnail', array( $this, 'ajax_thumbnail' ) );
 		add_action( 'wp_ajax_fee_categories', array( $this, 'ajax_categories' ) );
+		add_action( 'wp_ajax_fee_get_post_lock_dialog', array( $this, 'ajax_fee_get_post_lock_dialog' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'wp', array( $this, 'wp' ) );
 	}
 
 	function get_edit_post_link( $link, $id, $context ) {
+		/* is_admin()
+			This Conditional Tag checks if the Dashboard or the administration panel
+			is attempting to be displayed.It should not be used as a means to verify
+			whether the current user has permission to view the Dashboard or
+			the administration panel (try current_user_can() instead).
+			This is a boolean function that will return true if the URL being accessed
+			is in the admin section, or false for a front-end page.
+			@see https://codex.wordpress.org/Function_Reference/is_admin
+		*/
 		return $this->supports_fee( $id ) && ! is_admin() ? $this->edit_link( $id ) : $link;
 	}
 
@@ -88,6 +97,52 @@ class FEE {
 			'message' => $this->get_message( $post, $message ),
 			'post' => $post,
 			'processedPostContent' => apply_filters( 'the_content', $post->post_content )
+		) );
+	}
+
+	/**
+	 * To generate link for 'Take over' button in case request comes through
+	 * Ajax call when user clicked on 'Edit in page'. Current filter get_edit_post_link
+	 * check for different conditions which are failing when request comes through
+	 * ajax so handle it separately should think of any other enhancements can be
+	 * made to do those checks and get this link correctly.
+	 * is_admin() is always true for ajax calls.
+	 * get-lock-post is needs be there as $_GET paramter to get lock as per wp() method.
+	 * edit_post() fails as get_queried_object_id
+	 * method returns 0 instead of current post id.
+	 * If filter is not setup default URL will take you to admin panel on click of
+	 * Take Over button
+	 */
+	function get_edit_post_link_ajax($link=null, $id=null, $context=null){
+		return '#fee-edit-link';
+	}
+
+	/**
+	 * This method is invoked on click on edit bar or edit in page on front end
+	 * Checks if whether the post is under edit by any one else and creates
+	 * dialog box. Also @see  get_edit_post_link_ajax() comments to know
+	 * why filters are added
+	 */
+	function ajax_fee_get_post_lock_dialog() {
+		global $post;
+
+		$post_id = filter_input( INPUT_POST, 'post_ID', FILTER_SANITIZE_STRING );
+		$get_post_lock = filter_input( INPUT_POST, 'get_post_lock', FILTER_SANITIZE_STRING );
+		check_ajax_referer( 'fee-get-post-lock-dialog_' . $post_id, 'nonce' );
+		add_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link_ajax' ), 10, 3 );
+		require_once( ABSPATH . '/wp-admin/includes/post.php' );
+		$post = get_post( $post_id );
+		setup_postdata( $post );
+		ob_start();
+		_admin_notice_post_locked();
+		$view = ob_get_contents();
+		ob_end_clean();
+    if ( strpos( $view, 'post-locked-message' ) === false && ! empty( $get_post_lock ) )  {
+			wp_set_post_lock( $post_id);
+		}
+		remove_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link' ), 10, 3 );
+		wp_send_json_success( array(
+			'message' => $view
 		) );
 	}
 
@@ -256,6 +311,7 @@ class FEE {
 			wp_localize_script( 'wp-lists', 'ajaxurl', admin_url( 'admin-ajax.php' ) );
 
 			wp_enqueue_script( 'fee', $this->url( '/js/fee' . $suffix . '.js' ), array( 'fee-tinymce', 'wp-util', 'heartbeat', 'editor', 'wp-lists' ), $this->package['version'], true );
+			$lock = wp_check_post_lock( $post->ID );
 			wp_localize_script( 'fee', 'fee', array(
 				'tinymce' => apply_filters( 'fee_tinymce_config', $tinymce ),
 				'postOnServer' => $post,
@@ -263,11 +319,12 @@ class FEE {
 				'nonces' => array(
 					'post' => wp_create_nonce( 'update-post_' . $post->ID ),
 					'slug' => wp_create_nonce( 'slug-nonce_' . $post->ID ),
-					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID )
+					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID ),
+					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID )
 				),
-				'lock' => ! wp_check_post_lock( $post->ID ) ? implode( ':', wp_set_post_lock( $post->ID ) ) : false,
+				'lock' => $lock,
 				'notices' => array(
-					'autosave' => $this->get_autosave_notice()
+				'autosave' => $this->get_autosave_notice(),
 				),
 				'postTaxOnServer' => $this->get_post_tax_and_terms(),
 				'taxonomies' => $this->get_tax_and_terms()
@@ -320,15 +377,14 @@ class FEE {
 
 	function wp() {
 		global $post;
+		global $wp;
 
+		$current_url = home_url(add_query_arg(array(),$wp->request));
 		if ( ! empty( $_GET['get-post-lock'] ) ) {
 			require_once( ABSPATH . '/wp-admin/includes/post.php' );
-
 			wp_set_post_lock( $post->ID );
-
-			wp_redirect( $this->edit_link( $post->ID ) );
-
-			die;
+			wp_safe_redirect( $this->add_hash_arg( array( 'edit' => 'true' ), $current_url ) );
+		  exit;
 		}
 
 		if ( ! $this->has_fee() ) {
@@ -336,9 +392,8 @@ class FEE {
 		}
 
 		if ( force_ssl_admin() && ! is_ssl() ) {
-			wp_redirect( set_url_scheme( $this->edit_link( $post->ID ), 'https' ) );
-
-			die;
+			wp_safe_redirect( set_url_scheme( $current_url, 'https' ) );
+		  exit;
 		}
 
 		if ( $post->post_status === 'auto-draft' ) {
@@ -365,11 +420,6 @@ class FEE {
 		add_action( 'wp_print_footer_scripts', 'wp_auth_check_html' );
 		add_action( 'wp_print_footer_scripts', array( $this, 'footer' ) );
 		add_action( 'wp_print_footer_scripts', array( $this, 'link_modal' ) );
-
-		if ( count( get_users( array( 'fields' => 'ID', 'number' => 2 ) ) ) > 1 ) {
-			add_action( 'wp_print_footer_scripts', '_admin_notice_post_locked' );
-		}
-
 		add_filter( 'fee_content', 'wptexturize' );
 		add_filter( 'fee_content', 'convert_chars' );
 		add_filter( 'fee_content', 'wpautop' );
@@ -539,7 +589,6 @@ class FEE {
 				'title' => __( 'Publish' ),
 				'href' => '#'
 			) );
-
 			$wp_admin_bar->add_node( array(
 				'parent' => 'edit',
 				'id' => 'edit-cancel',
@@ -729,7 +778,6 @@ class FEE {
 	function supports_fee( $id = null ) {
 		$post = get_post( $id );
 		$supports_fee = false;
-
 		if (
 			$post &&
 			post_type_supports( $post->post_type, 'front-end-editor' ) &&
@@ -846,7 +894,6 @@ class FEE {
 		$return = preg_replace( '#=(&|$)#', '$1', $return );
 		$return = $protocol . $base . $return;
 		$return = rtrim( $return, '#' );
-
 		return $return;
 	}
 
