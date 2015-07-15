@@ -558,7 +558,7 @@
     }
 
     $window
-      .on('beforeunload.fee', function() {
+      .on('beforeunload.fee', function(event) {
         if (!hidden && isDirty()) {
           (event || window.event).returnValue = feeL10n.saveAlert;
           return feeL10n.saveAlert;
@@ -573,11 +573,13 @@
           return;
         }
 
-        wp.ajax.post('wp-remove-post-lock', {
-          _wpnonce: wp.fee.nonces.post,
-          post_ID: wp.fee.post.ID(),
-          active_post_lock: wp.fee.lock
-        });
+        if ( wp ) {
+          wp.ajax.post('wp-remove-post-lock', {
+            _wpnonce: wp.fee.nonces.post,
+            post_ID: wp.fee.post.ID(),
+            active_post_lock: wp.fee.lock
+          });
+        }
       });
 
     $document
@@ -766,17 +768,17 @@
       }
     });
 
-    $('#wp-admin-bar-edit-publish > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit-publish > a').on('click.fee', function(event) {
       event.preventDefault();
       publish();
     });
 
-    $('#wp-admin-bar-edit-save > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit-save > a').on('click.fee', function(event) {
       event.preventDefault();
       save();
     });
 
-    $('#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a').on('click.fee', function(event) {
       event.preventDefault();
       wp.ajax.post('fee_get_post_lock_dialog', {
         _wpnonce: wp.fee.nonces.postLockDialog,
