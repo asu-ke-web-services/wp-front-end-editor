@@ -385,11 +385,11 @@
       }
     }));
 
-    function acquireLockAndOnEdit(){
+    function acquireLockAndOnEdit() {
       wp.ajax.post('fee_get_post_lock_dialog', {
         _wpnonce: wp.fee.nonces.postLockDialog,
         post_ID: wp.fee.post.ID(),
-        get_post_lock:'true'
+        get_post_lock: 'true'
       }).done(function(data) {
         if (data.message) {
           addPostLockDialog(data.message);
@@ -405,12 +405,12 @@
       });
     }
 
-    function releaseLockAndOffEdit(){
+    function releaseLockAndOffEdit() {
       wp.ajax.post('wp-remove-post-lock', {
-          _wpnonce: wp.fee.nonces.post,
-          post_ID: wp.fee.post.ID(),
-          active_post_lock: wp.fee.lock
-        });
+        _wpnonce: wp.fee.nonces.post,
+        post_ID: wp.fee.post.ID(),
+        active_post_lock: wp.fee.lock
+      });
       off();
       hasLock = false;
     }
@@ -601,7 +601,7 @@
           return;
         }
 
-        if ( wp ) {
+        if (wp) {
           wp.ajax.post('wp-remove-post-lock', {
             _wpnonce: wp.fee.nonces.post,
             post_ID: wp.fee.post.ID(),
@@ -613,8 +613,7 @@
     $document
       .on('fee-editor-init.fee', function() {
         if ($body.hasClass('fee-on') || document.location.hash.indexOf('edit=true') !== -1) { // Lazy!
-          on();
-          hasLock = true;
+          acquireLockAndOnEdit();
         }
 
         if ($body.hasClass('fee-off') && !$thumbnail.find('img').length) {
@@ -653,7 +652,7 @@
         }
       })
       .on('heartbeat-send.fee-refresh-lock', function(event, data) {
-        if( hasLock != true  ) {
+        if (hasLock != true) {
           return;
         }
         data['wp-refresh-post-lock'] = {
@@ -716,10 +715,10 @@
 
           // TODO
           /* if ( nonces.replace ) {
-					$.each( nonces.replace, function( selector, value ) {
-						$( '#' + selector ).val( value );
-					});
-				} */
+          $.each( nonces.replace, function( selector, value ) {
+            $( '#' + selector ).val( value );
+          });
+        } */
 
           if (nonces.heartbeatNonce) {
             window.heartbeatSettings.nonce = nonces.heartbeatNonce;
@@ -744,7 +743,7 @@
             }
           });
         }
-        if ( ! hasLock ) {
+        if (!hasLock) {
           $body.addClass('fee-off');
         }
       });
@@ -813,7 +812,7 @@
 
     $('.post-edit-link').on('click.fee', function(event) {
       event.preventDefault();
-      if ( hasLock == true ) {
+      if (hasLock == true) {
         releaseLockAndOffEdit();
       } else {
         acquireLockAndOnEdit();

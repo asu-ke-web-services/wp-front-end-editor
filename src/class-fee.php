@@ -91,6 +91,7 @@ class FEE {
 		}
 
 		$post = get_post( $post_id );
+
 		wp_send_json_success( array(
 			'message' => $this->get_message( $post, $message ),
 			'post' => $post,
