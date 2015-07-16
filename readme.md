@@ -1,29 +1,31 @@
-`Front End Editor`
+#Front End Editor
 
 FEE can be used to edit either Pages or Posts on the front-end of the site.
 
 Users should have privilege to edit posts.
 
-`How to Use:`
+# How to Use:
+
 When you are on Font End of the site and logged you can see `Edit Page` button in
 the admin bar navigation on the top.
 
-On Clicking `Edit page` or `Edit in Page` in drop down you can start editing page.
+* On Clicking `Edit page` or `Edit in Page` in drop down you can start editing page.
 
-If you wish to edit in Back End editor click on `Edit in admin panel` button.
+* To add `Media/Page Breaks/Line/Read More` in the content keep place the cursor where you want to insert and hit enter key then you will see `Add Block` which navigates you to them. 
 
-To save changes click on `Update` or `Save Draft` button.
+* If you wish to edit in Back End editor click on `Edit in admin panel` button.
 
-Publish changes by clicking on `Publish` button.
+* To save changes click on `Update` or `Save Draft` button.
 
-Stop editing by clicking on `Cancel` button. On clicking `Cancel` button lock will be released in 155 seconds else lock will be released on moving out of the page because of inactivity.
+* Publish changes by clicking on `Publish` button.
 
-Any time you can go to Back-end editor to continue editing from there.
+* Stop editing by clicking on `Cancel` button. On clicking `Cancel` button lock will be released in 155 seconds else lock will be released on moving out of the page because of inactivity.
 
-To add `Media/Page Breaks/Line/Read More` in the content keep place the cursor where you want to insert and hit enter key then you will see `Add Block` which navigates you to them. 
+* Any time you can go to Back-end editor to continue editing from there.
+
 
 When some one is editing a page/post and you try to edit you will be prompted
-with `Go Back` `Preview` and `Take Over`. On Clicking taking over other user
+with `Go Back` `Preview` and `Take Over`. On Clicking `Take Over` other user
 will be alerted. There may be a delay of 15 seconds for this alert to be displayed to other user.
 
 While editing an autosave of the content will be taken place every 15 seconds.
