@@ -67,7 +67,6 @@ class FEE {
 		}
 
 		$_POST['post_title'] = strip_tags( $_POST['post_title'] );
-
 		$post_id = edit_post();
 
 		if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
@@ -92,7 +91,6 @@ class FEE {
 		}
 
 		$post = get_post( $post_id );
-
 		wp_send_json_success( array(
 			'message' => $this->get_message( $post, $message ),
 			'post' => $post,

@@ -179,7 +179,7 @@
     }
 
     function off(location) {
-      if (hidden || wp.fee.post.post_status() === 'auto-draft') {
+      if (hidden) {
         return;
       }
 
@@ -240,7 +240,6 @@
       _.each(wp.fee.post, function(fn, key) {
         postData[key] = fn();
       });
-
       return postData;
     }
 
@@ -451,7 +450,6 @@
         docTitle = ($title.text().length ? document.title.replace($title.text(), '<!--replace-->') : document.title);
 
         $title.addClass('fee-title');
-
         slugHTML = wp.fee.permalink.replace(/(?:%pagename%|%postname%)/,
           '<ins>' +
           '<span class="fee-slug">' +
@@ -813,17 +811,17 @@
       acquireLockAndOnEdit();
     });
 
-    $editLinks.on('click.fee', function(event) {
+    $('.post-edit-link').on('click.fee', function(event) {
       event.preventDefault();
       if ( hasLock == true ) {
         releaseLockAndOffEdit();
       } else {
-          acquireLockAndOnEdit();
+        acquireLockAndOnEdit();
       }
     });
     $('#wp-admin-bar-edit-cancel > a').on('click.fee', function(event) {
-       event.preventDefault();
-       releaseLockAndOffEdit();
+      event.preventDefault();
+      releaseLockAndOffEdit();
     });
 
     // Temporary.
