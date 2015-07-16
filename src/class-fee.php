@@ -67,7 +67,6 @@ class FEE {
 		}
 
 		$_POST['post_title'] = strip_tags( $_POST['post_title'] );
-
 		$post_id = edit_post();
 
 		if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {

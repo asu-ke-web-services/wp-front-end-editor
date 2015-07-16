@@ -179,7 +179,7 @@
     }
 
     function off(location) {
-      if (hidden || wp.fee.post.post_status() === 'auto-draft') {
+      if (hidden) {
         return;
       }
 
@@ -240,7 +240,6 @@
       _.each(wp.fee.post, function(fn, key) {
         postData[key] = fn();
       });
-
       return postData;
     }
 
@@ -386,6 +385,36 @@
       }
     }));
 
+    function acquireLockAndOnEdit() {
+      wp.ajax.post('fee_get_post_lock_dialog', {
+        _wpnonce: wp.fee.nonces.postLockDialog,
+        post_ID: wp.fee.post.ID(),
+        get_post_lock: 'true'
+      }).done(function(data) {
+        if (data.message) {
+          addPostLockDialog(data.message);
+          // If it is locked by some one turn off editor
+          if ($('.post-locked-message').length > 0) {
+            off();
+            hasLock = false;
+          } else {
+            on();
+            hasLock = true;
+          }
+        }
+      });
+    }
+
+    function releaseLockAndOffEdit() {
+      wp.ajax.post('wp-remove-post-lock', {
+        _wpnonce: wp.fee.nonces.post,
+        post_ID: wp.fee.post.ID(),
+        active_post_lock: wp.fee.lock
+      });
+      off();
+      hasLock = false;
+    }
+
     function titleInit() {
       var i, slugHTML, titleFocus, slugFocus,
         indexes = {};
@@ -421,7 +450,6 @@
         docTitle = ($title.text().length ? document.title.replace($title.text(), '<!--replace-->') : document.title);
 
         $title.addClass('fee-title');
-
         slugHTML = wp.fee.permalink.replace(/(?:%pagename%|%postname%)/,
           '<ins>' +
           '<span class="fee-slug">' +
@@ -558,7 +586,7 @@
     }
 
     $window
-      .on('beforeunload.fee', function() {
+      .on('beforeunload.fee', function(event) {
         if (!hidden && isDirty()) {
           (event || window.event).returnValue = feeL10n.saveAlert;
           return feeL10n.saveAlert;
@@ -573,18 +601,19 @@
           return;
         }
 
-        wp.ajax.post('wp-remove-post-lock', {
-          _wpnonce: wp.fee.nonces.post,
-          post_ID: wp.fee.post.ID(),
-          active_post_lock: wp.fee.lock
-        });
+        if (wp) {
+          wp.ajax.post('wp-remove-post-lock', {
+            _wpnonce: wp.fee.nonces.post,
+            post_ID: wp.fee.post.ID(),
+            active_post_lock: wp.fee.lock
+          });
+        }
       });
 
     $document
       .on('fee-editor-init.fee', function() {
         if ($body.hasClass('fee-on') || document.location.hash.indexOf('edit=true') !== -1) { // Lazy!
-          on();
-          hasLock = true;
+          acquireLockAndOnEdit();
         }
 
         if ($body.hasClass('fee-off') && !$thumbnail.find('img').length) {
@@ -623,7 +652,7 @@
         }
       })
       .on('heartbeat-send.fee-refresh-lock', function(event, data) {
-        if( hasLock != true  ) {
+        if (hasLock != true) {
           return;
         }
         data['wp-refresh-post-lock'] = {
@@ -686,10 +715,10 @@
 
           // TODO
           /* if ( nonces.replace ) {
-					$.each( nonces.replace, function( selector, value ) {
-						$( '#' + selector ).val( value );
-					});
-				} */
+          $.each( nonces.replace, function( selector, value ) {
+            $( '#' + selector ).val( value );
+          });
+        } */
 
           if (nonces.heartbeatNonce) {
             window.heartbeatSettings.nonce = nonces.heartbeatNonce;
@@ -714,7 +743,7 @@
             }
           });
         }
-        if ( ! hasLock ) {
+        if (!hasLock) {
           $body.addClass('fee-off');
         }
       });
@@ -766,56 +795,32 @@
       }
     });
 
-    $('#wp-admin-bar-edit-publish > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit-publish > a').on('click.fee', function(event) {
       event.preventDefault();
       publish();
     });
 
-    $('#wp-admin-bar-edit-save > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit-save > a').on('click.fee', function(event) {
       event.preventDefault();
       save();
     });
 
-    $('#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a').on('click.fee', function() {
+    $('#wp-admin-bar-edit > a, #wp-admin-bar-edit-in-page > a').on('click.fee', function(event) {
       event.preventDefault();
-      wp.ajax.post('fee_get_post_lock_dialog', {
-        _wpnonce: wp.fee.nonces.postLockDialog,
-        post_ID: wp.fee.post.ID(),
-        get_post_lock:'true'
-      }).done(function(data) {
-        if (data.message) {
-          addPostLockDialog(data.message);
-          // If it is locked by some one turn off editor
-          if ($('.post-locked-message').length > 0) {
-            off();
-            hasLock = false;
-          } else {
-            on();
-            hasLock = true;
-          }
-        }
-      });
+      acquireLockAndOnEdit();
     });
 
-    $editLinks.on('click.fee', function(event) {
-       event.preventDefault();
-       if ( hasLock == true ) {
-        off();
-        hasLock = false;
+    $('.post-edit-link').on('click.fee', function(event) {
+      event.preventDefault();
+      if (hasLock == true) {
+        releaseLockAndOffEdit();
       } else {
-        on();
-        hasLock = true;
+        acquireLockAndOnEdit();
       }
     });
     $('#wp-admin-bar-edit-cancel > a').on('click.fee', function(event) {
-       event.preventDefault();
-       wp.ajax.post('wp-remove-post-lock', {
-          _wpnonce: wp.fee.nonces.post,
-          post_ID: wp.fee.post.ID(),
-          active_post_lock: wp.fee.lock
-        });
-      off();
-      hasLock = false;
+      event.preventDefault();
+      releaseLockAndOffEdit();
     });
 
     // Temporary.
