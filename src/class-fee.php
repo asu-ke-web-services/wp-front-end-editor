@@ -41,6 +41,7 @@ class FEE {
 		add_action( 'wp_ajax_fee_thumbnail', array( $this, 'ajax_thumbnail' ) );
 		add_action( 'wp_ajax_fee_categories', array( $this, 'ajax_categories' ) );
 		add_action( 'wp_ajax_fee_get_post_lock_dialog', array( $this, 'ajax_fee_get_post_lock_dialog' ) );
+		add_action( 'wp_ajax_fee_take_over_edit', array( $this, 'ajax_fee_take_over_edit' ) );
 
 		add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
 		add_action( 'wp', array( $this, 'wp' ) );
@@ -136,12 +137,30 @@ class FEE {
 		_admin_notice_post_locked();
 		$view = ob_get_contents();
 		ob_end_clean();
+		$lock_message ='';
     if ( strpos( $view, 'post-locked-message' ) === false && ! empty( $get_post_lock ) )  {
-			wp_set_post_lock( $post_id);
+			$lock = wp_set_post_lock( $post_id);
+			$lock_message = $lock ? 'success' : 'failed';
 		}
 		remove_filter( 'get_edit_post_link', array( $this, 'get_edit_post_link' ), 10, 3 );
 		wp_send_json_success( array(
-			'message' => $view
+			'message' => $view,
+			'lock'	=> $lock_message
+		) );
+	}
+
+	function ajax_fee_take_over_edit() {
+		global $post;
+
+		$post_id = filter_input( INPUT_POST, 'post_ID', FILTER_SANITIZE_STRING );
+		check_ajax_referer( 'fee-take-over-edit_' . $post_id, 'nonce' );
+		require_once( ABSPATH . '/wp-admin/includes/post.php' );
+		$post = get_post( $post_id );
+		setup_postdata( $post );
+		$lock = wp_set_post_lock( $post_id);
+		$lock_message = $lock ? 'success' : 'failed';
+		wp_send_json_success( array(
+			'message' => $lock_message
 		) );
 	}
 
@@ -319,7 +338,8 @@ class FEE {
 					'post' => wp_create_nonce( 'update-post_' . $post->ID ),
 					'slug' => wp_create_nonce( 'slug-nonce_' . $post->ID ),
 					'categories' => wp_create_nonce( 'fee-categories_' . $post->ID ),
-					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID )
+					'postLockDialog' => wp_create_nonce( 'fee-get-post-lock-dialog_' . $post->ID ),
+					'takeOverEdit' => wp_create_nonce( 'fee-take-over-edit_' . $post->ID )
 				),
 				'lock' => $lock,
 				'notices' => array(
@@ -376,23 +396,9 @@ class FEE {
 
 	function wp() {
 		global $post;
-		global $wp;
-
-		$current_url = home_url(add_query_arg(array(),$wp->request));
-		if ( ! empty( $_GET['get-post-lock'] ) ) {
-			require_once( ABSPATH . '/wp-admin/includes/post.php' );
-			wp_set_post_lock( $post->ID );
-			wp_safe_redirect( $this->add_hash_arg( array( 'edit' => 'true' ), $current_url ) );
-		  exit;
-		}
 
 		if ( ! $this->has_fee() ) {
 			return;
-		}
-
-		if ( force_ssl_admin() && ! is_ssl() ) {
-			wp_safe_redirect( set_url_scheme( $current_url, 'https' ) );
-		  exit;
 		}
 
 		if ( $post->post_status === 'auto-draft' ) {
@@ -617,6 +623,7 @@ class FEE {
 
 	function footer() {
 		global $post;
+		error_log(print_r($post,true));
 
 		$post_type = $post->post_type;
 		$post_type_object = get_post_type_object( $post_type );

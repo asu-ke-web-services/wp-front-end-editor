@@ -385,6 +385,19 @@
       }
     }));
 
+    function takeOverEditing(){
+      $('button').prop('disabled', true);
+      wp.ajax.post('fee_take_over_edit', {
+        _wpnonce: wp.fee.nonces.takeOverEdit,
+        post_ID: wp.fee.post.ID(),
+      }).done(function(data) {
+        if(data.message == 'success'){
+            on();
+            hasLock = true;
+          }
+      });
+    }
+
     function acquireLockAndOnEdit() {
       wp.ajax.post('fee_get_post_lock_dialog', {
         _wpnonce: wp.fee.nonces.postLockDialog,
@@ -398,8 +411,10 @@
             off();
             hasLock = false;
           } else {
-            on();
-            hasLock = true;
+            if (data.lock == 'success') {
+              on();
+              hasLock = true;
+            }
           }
         }
       });
@@ -577,7 +592,7 @@
 
 
     function addPostLockDialog(post_lock_content) {
-      // If we get response and post lock dialog add that to body or replace if one exists 
+      // If we get response and post lock dialog add that to body or replace if one exists
       if ($('#post-lock-dialog').length == 0) {
         $('#wp-link-wrap').after(post_lock_content);
       } else {
@@ -746,6 +761,7 @@
         if (!hasLock) {
           $body.addClass('fee-off');
         }
+
       });
 
     $categories.on('click.fee', function(event) {
@@ -810,6 +826,7 @@
       acquireLockAndOnEdit();
     });
 
+
     $('.post-edit-link').on('click.fee', function(event) {
       event.preventDefault();
       if (hasLock == true) {
@@ -822,7 +839,13 @@
       event.preventDefault();
       releaseLockAndOffEdit();
     });
-
+    //Ajax call will lock post lock dialog box so wait on the closest static
+    // element for on click on Take Over button to work.
+    $('body').on('click.fee', 'a[href="?get-post-lock=1#fee-edit-link"]', function(event) {
+      event.preventDefault();
+      takeOverEditing();
+      $('#post-lock-dialog').hide();
+    } );
     // Temporary.
     if ($.inArray(wp.fee.post.post_status(), ['publish', 'future', 'private']) !== -1) {
       $('#wp-admin-bar-edit-publish').hide();
