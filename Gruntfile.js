@@ -45,7 +45,7 @@ module.exports = function( grunt ) {
 				cwd: SOURCE_DIR,
 				dest: BUILD_DIR,
 				ext: '.min.js',
-				src: [ 'js/*.js' ]
+				src: [ 'js/*.js','!js/*.min.js' ]
 			}
 		}
 	} );
