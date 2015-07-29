@@ -423,8 +423,8 @@ class FEE {
 		add_action( 'wp_before_admin_bar_render', array( $this, 'wp_before_admin_bar_render' ) );
 
 		add_action( 'wp_print_footer_scripts', 'wp_auth_check_html', 5 );
-		add_action( 'wp_print_footer_scripts', array( $this, 'footer' ) );
-		add_action( 'wp_print_footer_scripts', array( $this, 'link_modal' ) );
+		add_action( 'wp_print_footer_scripts', array( $this, 'footer' ), 5 );
+		add_action( 'wp_print_footer_scripts', array( $this, 'link_modal' ), 5 );
 		add_filter( 'fee_content', 'wptexturize' );
 		add_filter( 'fee_content', 'convert_chars' );
 		add_filter( 'fee_content', 'wpautop' );
