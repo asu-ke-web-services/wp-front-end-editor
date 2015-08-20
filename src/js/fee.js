@@ -284,6 +284,9 @@
         })
         .fail(function(data) {
           data.message && addNotice(data.message, 'error');
+          if( ! $.trim(data) || ! $.trim(data.message) ) {
+            addNotice('There is an error in saving', 'error');
+          }
         });
     }
 
