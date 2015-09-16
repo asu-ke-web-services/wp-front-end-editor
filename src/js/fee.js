@@ -417,6 +417,7 @@
             if (data.lock == 'success') {
               on();
               hasLock = true;
+              $('.post-edit-link').hide();
             }
           }
         }
@@ -431,6 +432,7 @@
       });
       off();
       hasLock = false;
+      $('.post-edit-link').show();
     }
 
     function titleInit() {
