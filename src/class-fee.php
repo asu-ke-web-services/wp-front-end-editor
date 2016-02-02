@@ -21,10 +21,20 @@ class FEE {
 
 		$this->wp_version = str_replace( '-src', '', $wp_version );
 
+
+		if ( version_compare( $this->wp_version, $this->package['wp']['min'], '<' ) ) {
+			return add_action( 'admin_notices', array( $this, 'admin_notices' ) );
+		}
+
 		add_post_type_support( 'post', 'front-end-editor' );
 		add_post_type_support( 'page', 'front-end-editor' );
 
 		add_action( 'init', array( $this, 'init' ) );
+	}
+
+
+	function admin_notices() {
+		echo '<div class="error"><p>' . sprintf( __( '<strong>WordPress Front-end Editor</strong> requires WordPress version %s or higher.' ), $this->package['wp']['min'] ) . '</p></div>';
 	}
 
 	function init() {
@@ -68,6 +78,9 @@ class FEE {
 		}
 
 		$_POST['post_title'] = strip_tags( $_POST['post_title'] );
+
+		$_POST['sticky'] = is_sticky( $_POST['post_ID'] );
+
 		$post_id = edit_post();
 
 		if ( isset( $_POST['save'] ) || isset( $_POST['publish'] ) ) {
@@ -282,6 +295,7 @@ class FEE {
 			}
 
 			$tinymce_plugins = array(
+				'wordpress',
 				'feeImage',
 				'feeMarkDown',
 				'wpmore',
@@ -354,11 +368,6 @@ class FEE {
 			) );
 
 			wp_enqueue_media( array( 'post' => $post ) );
-
-			// if ( version_compare( $this->wp_version, '4.2-beta', '<' ) ) {
-				wp_deregister_script( 'mce-view' );
-				wp_enqueue_script( 'mce-view', $this->url( '/js/mce-view' . $suffix . '.js' ), array( 'shortcode', 'media-models', 'media-audiovideo', 'wp-playlist' ), $this->package['version'], true );
-			// }
 
 			wp_enqueue_script( 'mce-view-register', $this->url( '/js/mce-view-register' . $suffix . '.js' ), array( 'mce-view', 'fee' ), $this->package['version'], true );
 

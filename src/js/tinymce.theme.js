@@ -293,7 +293,6 @@ tinymce.ThemeManager.add( 'fee', function( editor ) {
 
 		toolbars.normal = createToolbar( settings.toolbar );
 		toolbars.img = createToolbar( [ 'imgalignleft', 'imgaligncenter', 'imgalignright', 'imgalignnone', 'edit', 'remove' ] );
-		toolbars.view = createToolbar( [ 'wp_view_edit', 'wp_view_remove' ] );
 
 		panel = self.panel = Factory.create( {
 			type: 'floatpanel',
@@ -303,14 +302,13 @@ tinymce.ThemeManager.add( 'fee', function( editor ) {
 			autohide: true,
 			items: [
 				toolbars.normal,
-				toolbars.img,
-				toolbars.view
+				toolbars.img
 			]
 		} );
 
-		panel.reposition = function( name, view ) {
+		panel.reposition = function( name ) {
 			var toolbarEl = this.getEl(),
-				selection = view || editor.selection.getRng(),
+				selection = editor.selection.getRng(),
 				boundary = selection.getBoundingClientRect(),
 				boundaryMiddle = ( boundary.left + boundary.right ) / 2,
 				windowWidth = window.innerWidth,
@@ -364,10 +362,8 @@ tinymce.ThemeManager.add( 'fee', function( editor ) {
 		};
 
 		panel.on( 'show', function() {
-			var self = this;
-
 			setTimeout( function() {
-				self._visible && DOM.addClass( self.getEl(), 'mce-inline-toolbar-active' );
+				panel.state.data.visible && DOM.addClass( panel.getEl(), 'mce-inline-toolbar-active' );
 			}, 100 );
 		} );
 
@@ -387,7 +383,7 @@ tinymce.ThemeManager.add( 'fee', function( editor ) {
 			var element = event.element || editor.selection.getNode(),
 				view = editor.wp.getView( element );
 
-			if ( editor.selection.isCollapsed() && ! view ) {
+			if ( editor.selection.isCollapsed() || view ) {
 				panel.hide();
 				return;
 			}
@@ -399,20 +395,18 @@ tinymce.ThemeManager.add( 'fee', function( editor ) {
 					return;
 				}
 
-				if ( ( ! editor.selection.isCollapsed() &&
-						( content = editor.selection.getContent() ) &&
-						( content.replace( /<[^>]+>/g, '' ).trim() || content.indexOf( '<' ) === 0 ) &&
-						element.nodeName !== 'HR' ) || view ) {
-
-					if ( view ) {
-						name = 'view';
-					} else if ( element.nodeName === 'IMG' ) {
+				if ( ! editor.selection.isCollapsed() &&
+					( content = editor.selection.getContent() ) &&
+					( content.replace( /<[^>]+>/g, '' ).trim() || content.indexOf( '<' ) === 0 ) &&
+					element.nodeName !== 'HR'
+				) {
+					if ( element.nodeName === 'IMG' ) {
 						name = 'img';
 					} else {
 						name = 'normal';
 					}
 
-					panel.show().reposition( name, view );
+					panel.show().reposition( name );
 				} else {
 					panel.hide();
 				}
