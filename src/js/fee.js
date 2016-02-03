@@ -125,10 +125,7 @@
 
       if (content !== 'raw') {
         returnContent = returnContent.replace(/<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>');
-        returnContent = returnContent.replace(/<p>\[/g, '[');
-        returnContent = returnContent.replace(/\]<\/p>/g, ']');
-        returnContent = returnContent.replace(/<br \/>/g, '');
-        returnContent = returnContent.replace(/<p>&nbsp;<\/p>/g, '<br />');
+        returnContent = window.switchEditors.pre_wpautop(returnContent);
       }
 
       return returnContent;
@@ -209,9 +206,9 @@
         document.title = docTitle.replace('<!--replace-->', wp.fee.postOnServer.post_title);
       }
 
-      getEditors(function(editor) {
+      getEditors( function( editor ) {
         editor.hide();
-      });
+      } );
 
       $document.trigger('fee-off');
 
@@ -284,7 +281,7 @@
         })
         .fail(function(data) {
           data.message && addNotice(data.message, 'error');
-          if( ! $.trim(data) || ! $.trim(data.message) ) {
+          if (!$.trim(data) || !$.trim(data.message)) {
             addNotice('There was an error when saving', 'error');
           }
         });
@@ -362,7 +359,7 @@
       editors.push(editor);
 
       editor.on('init', function() {
-        editor.hide();
+        // editor.hide();
 
         initializedEditors++;
 
@@ -388,16 +385,16 @@
       }
     }));
 
-    function takeOverEditing(){
+    function takeOverEditing() {
       $('button').prop('disabled', true);
       wp.ajax.post('fee_take_over_edit', {
         _wpnonce: wp.fee.nonces.takeOverEdit,
         post_ID: wp.fee.post.ID(),
       }).done(function(data) {
-        if(data.message == 'success'){
-            on();
-            hasLock = true;
-          }
+        if (data.message == 'success') {
+          on();
+          hasLock = true;
+        }
       });
     }
 
@@ -509,88 +506,21 @@
               }
             });
 
-            editor.on('activate focus', function() {
-              titleFocus = true;
-              $url.slideDown('fast');
-            });
 
-            editor.on('deactivate blur hide', function() {
-              titleFocus = false;
 
-              setTimeout(function() {
-                if (!slugFocus) {
-                  $url.slideUp('fast', function() {
-                    contentEditor.nodeChanged();
-                  });
-                }
-              }, 100);
-            });
-          }
-        });
-
-        tinymce.init({
-          selector: '.fee-slug',
-          theme: 'fee',
-          paste_as_text: true,
-          plugins: 'paste',
-          inline: true,
-          setup: function(editor) {
-            slugEditor = editor;
-
-            registerEditor(editor);
-
-            editor.on('setcontent keyup', function() {
-              if (editor.dom.isEmpty(editor.getBody())) {
-                $slug.get(0).innerHTML = '';
-              }
-            });
-
-            editor.on('keydown', function(event) {
-              if (tinymce.util.VK.ENTER === event.keyCode) {
-                event.preventDefault();
-              } else if (tinymce.util.VK.SPACEBAR === event.keyCode) {
-                event.preventDefault();
-                editor.insertContent('-');
-              }
-            });
-
-            editor.on('blur', function() {
-              if (editor.isDirty()) {
-                wp.ajax.post('fee_slug', {
-                    'post_ID': wp.fee.post.post_ID(),
-                    'post_title': wp.fee.post.post_title(),
-                    'post_name': wp.fee.post.post_name(),
-                    '_wpnonce': wp.fee.nonces.slug
-                  })
-                  .done(function(slug) {
-                    slugEditor.setContent(slug);
-                  });
-              }
-            });
-
-            $url.on('click.fee', function() {
-              editor.focus();
-            });
-
-            editor.on('activate focus', function() {
-              slugFocus = true;
-            });
-
-            editor.on('deactivate blur hide', function() {
-              slugFocus = false;
-
-              setTimeout(function() {
-                if (!titleFocus) {
-                  $url.slideUp('fast', function() {
-                    contentEditor.nodeChanged();
-                  });
-                }
-              }, 100);
-            });
           }
         });
       }
+
+
+
     }
+
+
+
+
+
+
 
     titleInit();
 
@@ -698,7 +628,6 @@
 
                 wrap.addClass('saving');
 
-                //This is generating a lot of ajax cals need to debug more
                 wp.autosave.server.triggerSave();
               }
 
@@ -846,11 +775,11 @@
     });
     //Ajax call will lock post lock dialog box so wait on the closest static
     // element for on click on Take Over button to work.
-    $('body').on('click.fee', 'a[href="?get-post-lock=1#fee-edit-link"]', function(event) {
+    $('body').on('click.fee', 'a[href$="get-post-lock=1#fee-edit-link"]', function(event) {
       event.preventDefault();
       takeOverEditing();
       $('#post-lock-dialog').hide();
-    } );
+    });
     // Temporary.
     if ($.inArray(wp.fee.post.post_status(), ['publish', 'future', 'private']) !== -1) {
       $('#wp-admin-bar-edit-publish').hide();

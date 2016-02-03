@@ -1,6 +1,6 @@
 {
   "name": "wp-front-end-editor",
-  "version": "1.0.7",
+  "version": "1.1.0",
   "description": "Edit your posts on the front-end of your site.",
   "keywords": [
     "front-end editor",
@@ -54,7 +54,12 @@
     "grunt-sass": "0.16.x",
     "matchdep": "0.3.x"
   },
-  "dependencies": {
-    "matchdep": "^0.3.0"
+  "wp": {
+    "name": "Front-end Editor",
+    "min": "4.4",
+    "max": "4.4",
+    "network": "false",
+    "textDomain": "wp-front-end-editor",
+    "domainPath": "languages"
   }
 }
