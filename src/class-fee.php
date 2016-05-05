@@ -430,7 +430,10 @@ class FEE {
     add_action( 'wp_print_footer_scripts', array( $this, 'link_modal' ), 5 );
     add_filter( 'fee_content', 'wptexturize' );
     add_filter( 'fee_content', 'convert_chars' );
-    add_filter( 'fee_content', 'wpautop' );
+    if ( ! has_filter( 'the_content', 'wpautop' ) ) {
+      add_filter( 'fee_content', 'wpautop' );
+    }
+
   }
 
   function body_class( $classes ) {
