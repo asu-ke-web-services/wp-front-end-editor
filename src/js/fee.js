@@ -108,7 +108,6 @@
 
       return '';
     };
-
     wp.fee.post.post_content = function(content) {
       var returnContent;
 
@@ -125,9 +124,10 @@
 
       if (content !== 'raw') {
         returnContent = returnContent.replace(/<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>');
-        returnContent = returnContent.replace( /<p>\[/g, '[');
-        returnContent = returnContent.replace( /\]<\/p>/g, ']');
-        returnContent = returnContent.replace( /<br \/>/g, '');
+        var isWpautopEnabled = wp.fee.isWpautopEnabled;
+        if( isWpautopEnabled && isWpautopEnabled !== '' ) {
+          returnContent = window.switchEditors.pre_wpautop(returnContent);
+        }
       }
 
       return returnContent;
