@@ -127,6 +127,11 @@
         var isWpautopEnabled = wp.fee.isWpautopEnabled;
         if( isWpautopEnabled && isWpautopEnabled !== '' ) {
           returnContent = window.switchEditors.pre_wpautop(returnContent);
+        } else {
+          returnContent = returnContent.replace(/<p>\[/g, '[');
+          returnContent = returnContent.replace(/\]<\/p>/g, ']');
+          returnContent = returnContent.replace(/<br \/>/g, '');
+          returnContent = returnContent.replace(/<p>&nbsp;<\/p>/g, '<br />');
         }
       }
 
