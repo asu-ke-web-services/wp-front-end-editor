@@ -128,6 +128,8 @@
         if( isWpautopEnabled && isWpautopEnabled !== '' ) {
           returnContent = window.switchEditors.pre_wpautop(returnContent);
         } else {
+        	// If we are not using wpautop, then we should do some basic filtering to prevent escaping 
+        	// shortcodes and other spacing controls.
           returnContent = returnContent.replace(/<p>\[/g, '[');
           returnContent = returnContent.replace(/\]<\/p>/g, ']');
           returnContent = returnContent.replace(/<br \/>/g, '');
