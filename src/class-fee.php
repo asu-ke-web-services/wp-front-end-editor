@@ -417,7 +417,6 @@ class FEE {
     add_filter( 'post_class', array( $this, 'post_class' ) );
     add_filter( 'the_title', array( $this, 'the_title' ), 10, 2 );
     add_filter( 'the_content', array( $this, 'the_content' ), 20 );
-    add_filter( 'the_content', 'wpautop' );
     add_filter( 'wp_link_pages', array( $this, 'wp_link_pages' ) );
     add_filter( 'post_thumbnail_html', array( $this, 'post_thumbnail_html' ), 10, 5 );
     add_filter( 'get_post_metadata', array( $this, 'get_post_metadata' ), 10, 4 );
