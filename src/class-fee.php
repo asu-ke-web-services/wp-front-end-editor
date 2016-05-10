@@ -50,6 +50,7 @@ class FEE {
 
     add_action( 'wp_enqueue_scripts', array( $this, 'wp_enqueue_scripts' ) );
     add_action( 'wp', array( $this, 'wp' ) );
+
   }
 
   function get_edit_post_link( $link, $id, $context ) {
@@ -334,7 +335,6 @@ class FEE {
 
       wp_enqueue_script( 'wp-lists' );
       wp_localize_script( 'wp-lists', 'ajaxurl', admin_url( 'admin-ajax.php' ) );
-
       wp_enqueue_script( 'fee', $this->url( '/js/fee' . $suffix . '.js' ), array( 'fee-tinymce', 'wp-util', 'heartbeat', 'editor', 'wp-lists' ), $this->package['version'], true );
       $lock = wp_check_post_lock( $post->ID );
       wp_localize_script( 'fee', 'fee', array(
@@ -349,6 +349,7 @@ class FEE {
           'takeOverEdit' => wp_create_nonce( 'fee-take-over-edit_' . $post->ID )
         ),
         'lock' => $lock,
+        'isWpautopEnabled' => has_filter( 'the_content', 'wpautop' ),
         'notices' => array(
         'autosave' => $this->get_autosave_notice(),
         ),
@@ -433,7 +434,6 @@ class FEE {
     if ( has_filter( 'the_content', 'wpautop' ) ) {
       add_filter( 'fee_content', 'wpautop' );
     }
-
   }
 
   function body_class( $classes ) {

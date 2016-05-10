@@ -108,7 +108,6 @@
 
       return '';
     };
-
     wp.fee.post.post_content = function(content) {
       var returnContent;
 
@@ -125,7 +124,17 @@
 
       if (content !== 'raw') {
         returnContent = returnContent.replace(/<p>(?:<br ?\/?>|\u00a0|\uFEFF| )*<\/p>/g, '<p>&nbsp;</p>');
-        returnContent = window.switchEditors.pre_wpautop(returnContent);
+        var isWpautopEnabled = wp.fee.isWpautopEnabled;
+        if( isWpautopEnabled && isWpautopEnabled !== '' ) {
+          returnContent = window.switchEditors.pre_wpautop(returnContent);
+        } else {
+        	// If we are not using wpautop, then we should do some basic filtering to prevent escaping 
+        	// shortcodes and other spacing controls.
+          returnContent = returnContent.replace(/<p>\[/g, '[');
+          returnContent = returnContent.replace(/\]<\/p>/g, ']');
+          returnContent = returnContent.replace(/<br \/>/g, '');
+          returnContent = returnContent.replace(/<p>&nbsp;<\/p>/g, '<br />');
+        }
       }
 
       return returnContent;
